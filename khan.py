@@ -4,6 +4,7 @@ try:
 except ImportError:
     pass
 
+
 def tcp_client(host, port):
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client.connect((host, port))
@@ -39,7 +40,13 @@ def whoAmI():
         except:
             donuthin += 1
     os.system("rm self.txt")
-    return ip, mac, interfaces
+    # Now Get External IP
+    f2 = open("whoAmI.txt","r")
+    extIP = ""
+    for line in f2.readlines():
+        extIP+=line
+
+    return ip, mac, interfaces, extIP
 
 
 def run(ip,gpioflag):
@@ -87,7 +94,8 @@ class TCPServer:
                 try:
                     client, addr = server.accept()
                     print "Connection Accepted from %s:%d" % (addr[0], addr[1])
-                    client_handler = threading.Thread(target=self.handle_client, args=(client,addr[0]))
+                    client_handler = threading.Thread(target=self.handle_client,
+                                                      args=(client,addr[0]))
                     client_handler.start()
                     if self.hasLeds:
                         GPIO.output(20, GPIO.HIGH)
@@ -144,9 +152,10 @@ def main():
     running = True
 
     # Get basic info about local machine for peer connections
-    ip, mac, interfaces = whoAmI()
+    ip, mac, interfaces, extIP = whoAmI()
     print("Host IP: " + ip)
     print("MAC(s): " + mac)
+    print("External IP is:\n" + extIP)
 
     # Start a TCP Server to initialize Peer on the Network
     run(ip, hasLED)
