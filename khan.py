@@ -50,12 +50,12 @@ class TCPServer:
     """
     <TCP SERVER>
     """
-        ACK_N = 0
-        ip = ""
-        Hello = False
+    ACK_N = 0
+    ip = ""
+    Hello = False
 
-        def __init__(self, local,gpio):
-            """
+    def __init__(self, local,gpio):
+        """
             If GPIO is connected, this program assumes LED pinout:
             GPIO 20 :  Green LED
             GPIO 24 :  Red LED
@@ -63,27 +63,27 @@ class TCPServer:
             :param local:
             :param gpio:
             """
-            self.hasLeds = gpio
-            if self.hasLeds:
-                GPIO.setmode(GPIO.BCM)
-                GPIO.setup(20, GPIO.OUT)  # Green
-                GPIO.setup(24, GPIO.OUT)  # Red
-                GPIO.setup(27, GPIO.OUT)  # Blue
-                # Server is running, to the light is GREEN
-                GPIO.output(20, GPIO.HIGH)
+        self.hasLeds = gpio
+        if self.hasLeds:
+            GPIO.setmode(GPIO.BCM)
+            GPIO.setup(20, GPIO.OUT)  # Green
+            GPIO.setup(24, GPIO.OUT)  # Red
+            GPIO.setup(27, GPIO.OUT)  # Blue
+            # Server is running, to the light is GREEN
+            GPIO.output(20, GPIO.HIGH)
 
-            os.system("touch peers.txt")
-            self.ip = local
-            self.bind_ip = "0.0.0.0"
-            self.bind_port = 9999
+        os.system("touch peers.txt")
+        self.ip = local
+        self.bind_ip = "0.0.0.0"
+        self.bind_port = 9999
 
-            server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            server.bind((self.bind_ip, self.bind_port))
-            server.listen(5)
+        server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        server.bind((self.bind_ip, self.bind_port))
+        server.listen(5)
 
-            go = True
-            print("[<<|- Starting P2P Node @ %s:%d-|>>]" % (self.bind_ip, self.bind_port))
-            while go and not self.Hello:
+        go = True
+        print("[<<|- Starting P2P Node @ %s:%d-|>>]" % (self.bind_ip, self.bind_port))
+        while go and not self.Hello:
                 try:
                     client, addr = server.accept()
                     print "Connection Accepted from %s:%d" % (addr[0], addr[1])
@@ -97,40 +97,40 @@ class TCPServer:
                         GPIO.output(27, GPIO.LOW)
                         GPIO.output(20, GPIO.LOW)
                     go = False
-            print "Handshake Completed"
-            os.system("rm peers.txt")
-            if self.hasLeds:
-                GPIO.cleanup()
+        print "Handshake Completed"
+        os.system("rm peers.txt")
+        if self.hasLeds:
+            GPIO.cleanup()
 
-        def handle_client(self, client_socket, remote_host):
-            """
-            Client handling thread
-            :return:
-            """
-            if self.hasLeds:
-                GPIO.output(24, GPIO.HIGH)
-            request = client_socket.recv(1024)
-            print("[*- %s" % request)
-            # Send back an acknowledgement
-            # including what peer you are
-            # message = "ACK " + str(self.ACK_N)
-            message = hashlib.sha256(self.ip).hexdigest()
-            client_socket.send(message)
-            data, peer = self.client_side_p2p(client_socket,remote_host)
-            self.ACK_N += 1;
+    def handle_client(self, client_socket, remote_host):
+        """
+        Client handling thread
+        :return:
+        """
+        if self.hasLeds:
+            GPIO.output(24, GPIO.HIGH)
+        request = client_socket.recv(1024)
+        print("[*- %s" % request)
+        # Send back an acknowledgement
+        # including what peer you are
+        # message = "ACK " + str(self.ACK_N)
+        message = hashlib.sha256(self.ip).hexdigest()
+        client_socket.send(message)
+        data, peer = self.client_side_p2p(client_socket,remote_host)
+        self.ACK_N += 1;
 
-        def client_side_p2p(self, me, peer):
-            if self.hasLeds:
-                GPIO.output(24, GPIO.LOW)
-                GPIO.output(20, GPIO.LOW)
-                GPIO.output(27, GPIO.HIGH)
-            peerHello = hashlib.sha256(self.ip).hexdigest()
-            me.sendto(peerHello, (peer, 9999))
-            data, address = me.recvfrom(4096)
-            me.close()
-            print
-            self.Hello = True
-            return data, address
+    def client_side_p2p(self, me, peer):
+        if self.hasLeds:
+            GPIO.output(24, GPIO.LOW)
+            GPIO.output(20, GPIO.LOW)
+            GPIO.output(27, GPIO.HIGH)
+
+        peerHello = hashlib.sha256(self.ip).hexdigest()
+        me.sendto(peerHello, (peer, 9999))
+        data, address = me.recvfrom(4096)
+        me.close()
+        self.Hello = True
+        return data, address
 
 
 def main():

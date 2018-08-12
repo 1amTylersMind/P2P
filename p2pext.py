@@ -42,8 +42,24 @@ def tcp_messenger(message,where,to,):
     return response
 
 
+def get_external_ip():
+    os.system('touch ipinfo.txt')
+    os.system('curl https://myexternalip.com >> ipinfo.txt')
+    nxtxt = open('ipinfo.txt','r')
+    ip = ""
+    for line in nxtxt.read():
+        notit = 0
+        try:
+          ip += line.split("My External IP address - ")[1]
+        except:
+            notit += 1
+        print "IP: "+ip
+
+
 def main():
     start = time.time()
+    print "Connecting to P2P Network"
+    get_external_ip()
     peerIP = sys.argv[1]
     ip, mac, interfaces = whoAmI()
     peerID = tcp_client(peerIP,9999)
