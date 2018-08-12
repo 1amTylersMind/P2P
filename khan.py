@@ -1,5 +1,8 @@
 import hashlib, os, time, socket, threading
-import RPi.GPIO as GPIO
+try:
+    import RPi.GPIO as GPIO
+except ImportError:
+    pass
 
 def tcp_client(host, port):
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -44,11 +47,22 @@ def run(ip,gpioflag):
 
 
 class TCPServer:
+    """
+    <TCP SERVER>
+    """
         ACK_N = 0
         ip = ""
         Hello = False
 
         def __init__(self, local,gpio):
+            """
+            If GPIO is connected, this program assumes LED pinout:
+            GPIO 20 :  Green LED
+            GPIO 24 :  Red LED
+            GPIO 27 :  Blue LED
+            :param local:
+            :param gpio:
+            """
             self.hasLeds = gpio
             if self.hasLeds:
                 GPIO.setmode(GPIO.BCM)
@@ -126,15 +140,16 @@ def main():
         hasLED = True
     except ImportError:
         print "Cannot Use GPIO for LEDs "
-
     start = time.time()
     running = True
+
     # Get basic info about local machine for peer connections
     ip, mac, interfaces = whoAmI()
     print("Host IP: " + ip)
     print("MAC(s): " + mac)
+
     # Start a TCP Server to initialize Peer on the Network
-    run(ip,hasLED)
+    run(ip, hasLED)
     dt = time.time() - start
     print(str(dt)+"s Elapsed")
 

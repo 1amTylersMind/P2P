@@ -1,4 +1,4 @@
-import hashlib, os, time, socket, threading
+import hashlib, os, sys, time, socket, threading
 
 
 def whoAmI():
@@ -43,10 +43,13 @@ def tcp_messenger(message,where,to,):
 
 
 def main():
+    start = time.time()
+    peerIP = sys.argv[1]
     ip, mac, interfaces = whoAmI()
-    peerID = tcp_client("192.168.1.155",9999)
+    peerID = tcp_client(peerIP,9999)
     myID = hashlib.sha256(ip).hexdigest()
-    print tcp_messenger(myID,"192.168.1.155",9999)
+    print tcp_messenger(myID,peerIP,9999)
+    print "["+str(time.time() - start)+"s elapsed]"
 
 
 if __name__ == "__main__":
